@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cotral KPI & Straordinari</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-20">
+
+    <!-- Header -->
+    <header class="bg-blue-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-white text-blue-900 font-bold px-2 py-1 rounded-lg text-xs tracking-wider">COTRAL</div>
+                <h1 class="font-semibold text-sm">KPI & Straordinari</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openInstallModal()" id="installBtn" class="bg-blue-700 hover:bg-blue-600 text-xs px-2.5 py-1.5 rounded-lg font-medium transition hidden items-center space-x-1">
+                    <i class="fa-solid fa-download"></i> <span>Installa</span>
+                </button>
+                <div id="currentMonthDisplay" class="text-xs bg-blue-800 px-2.5 py-1.5 rounded-lg font-medium">--</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-md mx-auto p-4 space-y-4">
+
+        <!-- Tab 1: Gestione Mensile & Giornaliera -->
+        <div id="tab-giornaliero" class="tab-content active space-y-4">
+            
+            <!-- Selettore Mese e Anno -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Seleziona Mese</label>
+                    <input type="month" id="selectedMonthInput" class="mt-1 font-semibold text-gray-800 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="changeMonth()">
+                </div>
+                <div class="text-right">
+                    <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Stima Premio Mese</span>
+                    <span id="headerEstimatedBonus" class="text-xl font-bold text-blue-600">0,00 €</span>
+                </div>
+            </div>
+
+            <!-- Card Sintesi Rapida KPI Mese con Moltiplicatore 2bis in evidenza -->
+            <div class="bg-gradient-to-br from-blue-900 to-blue-800 text-white p-5 rounded-2xl shadow-lg space-y-3">
+                <div class="flex justify-between items-center border-b border-blue-700 pb-2">
+                    <span class="text-xs font-medium uppercase tracking-wider text-blue-200">Riepilogo Parametri & Moltiplicatore</span>
+                    <span id="summaryMonthTitle" class="text-xs font-semibold bg-blue-700 px-2 py-0.5 rounded text-blue-100">--</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="bg-blue-800/60 p-2.5 rounded-xl border border-blue-700/50">
+                        <div class="text-xs text-blue-300">Ore Straordinario (2bis)</div>
+                        <div id="summaryExtraHours" class="text-lg font-bold">0h 00m</div>
+                    </div>
+                    <div class="bg-blue-800/60 p-2.5 rounded-xl border border-blue-700/50">
+                        <div class="text-xs text-blue-300">Moltiplicatore 2bis</div>
+                        <div id="summaryMoltiplicatoreValue" class="text-lg font-bold text-amber-300">1.0x</div>
+                    </div>
+                    <div class="bg-blue-800/60 p-2.5 rounded-xl border border-blue-700/50">
+                        <div class="text-xs text-blue-300">Fascia Regolarità (1)</div>
+                        <div id="summaryRegolaritaFascia" class="text-sm font-bold">-</div>
+                    </div>
+                    <div class="bg-blue-800/60 p-2.5 rounded-xl border border-blue-700/50">
+                        <div class="text-xs text-blue-300">Fascia Copertura (2)</div>
+                        <div id="summaryCoperturaFascia" class="text-sm font-bold">-</div>
+                    </div>
+                </div>
+
+                <!-- Contatore Visivo 104 e Parentale -->
+                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-700/60 text-xs">
+                    <div class="bg-blue-950/50 px-2.5 py-1.5 rounded-lg flex justify-between items-center">
+                        <span class="text-blue-200">Legge 104:</span>
+                        <span id="counter104" class="font-bold text-white">0 / 3</span>
+                    </div>
+                    <div class="bg-blue-950/50 px-2.5 py-1.5 rounded-lg flex justify-between items-center">
+                        <span class="text-blue-200">Parentale:</span>
+                        <span id="counterParentale" class="font-bold text-white">0 / 3</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-blue-700 flex justify-between items-center">
+                    <div>
+                        <span class="block text-xs text-blue-200 font-medium">Totale Stimato Mese:</span>
+                        <span class="text-[10px] text-blue-300">(Include Moltiplicatore & Incidentalità)</span>
+                    </div>
+                    <span id="summaryTotalMonthly" class="text-2xl font-extrabold text-green-400">0,00 €</span>
+                </div>
+            </div>
+
+            <!-- Pulsante Gestione Parametri Mensili Generali -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-semibold text-sm text-gray-800">Parametri Mensili & Sinistri</h3>
+                    <p class="text-xs text-gray-500">Regolarità %, Incidentalità e Malattie</p>
+                </div>
+                <button onclick="openMonthlyParamsModal()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-1">
+                    <i class="fa-solid fa-sliders"></i> <span>Modifica</span>
+                </button>
+            </div>
+
+            <!-- Sezione dedicata Menù Straordinari & Ore Giornaliere -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-semibold text-sm text-gray-800"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-1.5"></i> Menù Straordinari & Giorni</h3>
+                    <span class="text-xs text-gray-500" id="daysCountBadge">0 giorni compilati</span>
+                </div>
+                <div id="daysListContainer" class="divide-y divide-gray-100 max-h-[420px] overflow-y-auto">
+                    <!-- Generato via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Bonus Semestrali & Calcoli Avanzati -->
+        <div id="tab-semestre" class="tab-content space-y-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-award text-amber-500 mr-2"></i> 4) Bonus Semestrale Welfare</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Verifica requisiti semestrali (Turni esigibili + congedi + formazione + domeniche/festivi).</p>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-gray-100">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Seleziona Semestre</label>
+                        <select id="semestreSelect" onchange="updateSemesterData()" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1">1° Semestre (Febbraio - Luglio)</option>
+                            <option value="2">2° Semestre (Agosto - Gennaio)</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700">Turni esigibili + congedi + formazione coperti nel semestre:</label>
+                            <input type="number" id="semTurniTotali" oninput="calculateSemesterBonus()" class="mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 text-sm font-semibold" placeholder="es. 132">
+                            <span class="text-[10px] text-gray-500">Target: >=130 (Bonus 400 € sul portale Welfare)</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700">Turni esigibili Domeniche e Festivi nel semestre:</label>
+                            <input type="number" id="semFestiviTotali" oninput="calculateSemesterBonus()" class="mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 text-sm font-semibold" placeholder="es. 10">
+                            <span class="text-[10px] text-gray-500">6-8 (+40€) | 9-10 (+60€) | 11-12 (+80€) | >=13 (+100€)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 flex justify-between items-center">
+                        <div>
+                            <span class="block text-xs font-semibold text-blue-800 uppercase">Totale Bonus Semestrale Stimato</span>
+                            <span class="text-[11px] text-blue-600">Accredito su portale Welfare</span>
+                        </div>
+                        <span id="semBonusResult" class="text-xl font-bold text-blue-700">0 €</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabella Informativa Ufficiale -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i> Riepilogo Fasce & Regole</h3>
+                <div class="text-xs text-gray-600 space-y-2 leading-relaxed">
+                    <p><b>1) Regolarità:</b> Fascia 1 (>=100%: 50€), Fascia 2 (99-99.99%: 30€), Fascia 3 (98-99%: 10€), Fascia 4 (<98%: 0€).</p>
+                    <p><b>2) Copertura Turni:</b> Fascia 1 (>=25: 85€), Fascia 2 (24: 60€), Fascia 3 (23: 45€), Fascia 4 (<=22: 0€).</p>
+                    <p><b>2bis) Moltiplicatore Ore Eccedenza:</b> In base alle ore di straordinario mensili e alla fascia KPI 2 (es. >20h con fascia 1 dà moltiplicatore 1.9).</p>
+                    <p><b>3) Incidentalità:</b> Nessun sinistro con colpa (+30€); in caso di sinistro decurtazione percentuale (-20% fino a -100% in base ai costi).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Esportazione e Backup -->
+        <div id="tab-impostazioni" class="tab-content space-y-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-cloud-arrow-down text-blue-600 mr-2"></i> Gestione Dati & Condivisione</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">I tuoi dati sono salvati in sicurezza direttamente sul tuo telefono.</p>
+                </div>
+
+                <div class="space-y-2.5 pt-2 border-t border-gray-100">
+                    <button onclick="exportDataJSON()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-download"></i> <span>Esporta Backup Dati (JSON)</span>
+                    </button>
+                    
+                    <label class="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer border border-gray-300">
+                        <i class="fa-solid fa-upload"></i> <span>Importa Backup Dati</span>
+                        <input type="file" id="importFile" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                    </label>
+
+                    <button onclick="resetAllData()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-trash-can"></i> <span>Cancella Tutti i Dati</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Informazioni Installazione App -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-3">
+                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-mobile-screen-button text-green-600 mr-1.5"></i> Come installare l'App sul Telefono</h3>
+                <ol class="text-xs text-gray-600 space-y-2 list-decimal list-inside leading-relaxed">
+                    <li>Se usi <b>Android (Chrome)</b>: premi sui tre puntini in alto a destra e seleziona <b>"Aggiungi a schermata Home"</b> o <b>"Installa app"</b>.</li>
+                    <li>Se usi <b>iPhone (Safari)</b>: premi sul tasto Condividi (il quadrato con la freccia verso l'alto) e seleziona <b>"Aggiungi a schermata Home"</b>.</li>
+                    <li>L'app funzionerà offline e potrai aprirla come un'applicazione nativa!</li>
+                </ol>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto shadow-lg">
+        <div class="grid grid-cols-3 h-16">
+            <button onclick="switchTab('giornaliero')" id="nav-btn-giornaliero" class="flex flex-col items-center justify-center text-blue-600 transition space-y-1">
+                <i class="fa-solid fa-calendar-days text-lg"></i>
+                <span class="text-[10px] font-semibold">Giornaliero</span>
+            </button>
+            <button onclick="switchTab('semestre')" id="nav-btn-semestre" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition space-y-1">
+                <i class="fa-solid fa-award text-lg"></i>
+                <span class="text-[10px] font-semibold">Bonus Semestre</span>
+            </button>
+            <button onclick="switchTab('impostazioni')" id="nav-btn-impostazioni" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition space-y-1">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-semibold">Impostazioni</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal Parametri Mensili & Sinistri -->
+    <div id="monthlyParamsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-gray-800 text-base">Parametri Mensili & Incidenti</h3>
+                <button onclick="closeMonthlyParamsModal()" class="text-gray-400 hover:text-gray-600 text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">1) Regolarità del Servizio (%)</label>
+                    <select id="modalRegolaritaFascia" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold">
+                        <option value="1">Fascia 1 (>= 100%) - Premio 50 €</option>
+                        <option value="2">Fascia 2 (99% - 99.99%) - Premio 30 €</option>
+                        <option value="3">Fascia 3 (98% - 99%) - Premio 10 €</option>
+                        <option value="4">Fascia 4 (< 98%) - Premio 0 €</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">2) Copertura Turni di Servizio (Fascia mensile)</label>
+                    <select id="modalCoperturaFascia" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold">
+                        <option value="1">Fascia 1 (>= 25 turni) - Premio 85 €</option>
+                        <option value="2">Fascia 2 (24 turni) - Premio 60 €</option>
+                        <option value="3">Fascia 3 (23 turni) - Premio 45 €</option>
+                        <option value="4">Fascia 4 (<= 22 turni) - Premio 0 €</option>
+                    </select>
+                </div>
+
+                <div class="border-t border-gray-100 pt-3">
+                    <label class="block font-semibold text-gray-700 mb-1">3) Incidentalità con Colpa (Sinistri mese)</label>
+                    <select id="modalIncidentalita" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold">
+                        <option value="0">Nessun incidente con colpa (+30 € premio)</option>
+                        <option value="20">1 sinistro passivo con costi <= 3500€ (-20%)</option>
+                        <option value="50">1 sinistro passivo con costi 3500€-5000€ (-50%)</option>
+                        <option value="80">1 sinistro passivo con costi 5000€-7000€ (-80%)</option>
+                        <option value="100">1 sinistro passivo con costi > 7000€ (-100%)</option>
+                    </select>
+                </div>
+
+                <div class="border-t border-gray-100 pt-3">
+                    <label class="block font-semibold text-gray-700 mb-1">Esclusioni Premialità (Provvedimenti / Malattie)</label>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <input type="checkbox" id="modalMalattiaEsclusione" class="rounded text-blue-600 w-4 h-4">
+                        <span class="text-gray-700">> 1 Evento di malattia o > 3 giorni di malattia</span>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <input type="checkbox" id="modalProvvedimentoEsclusione" class="rounded text-blue-600 w-4 h-4">
+                        <span class="text-gray-700">Provvedimenti disciplinari > 1 giorno</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex space-x-2">
+                <button onclick="closeMonthlyParamsModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl text-xs transition">Annulla</button>
+                <button onclick="saveMonthlyParams()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl text-xs transition">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifica Giorno -->
+    <div id="dayModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 id="modalDayTitle" class="font-bold text-gray-800 text-base">Modifica Giorno</h3>
+                <button onclick="closeDayModal()" class="text-gray-400 hover:text-gray-600 text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <input type="hidden" id="modalDayKey">
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Stato Turno / Giorno</label>
+                    <select id="dayTypeSelect" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold">
+                        <option value="lavorativo">Turno Ordinario / Lavorativo</option>
+                        <option value="riposo">Riposo</option>
+                        <option value="ferie">Ferie / Congedo</option>
+                        <option value="malattia">Malattia</option>
+                        <option value="formazione">Formazione / Collegio Medico</option>
+                        <option value="festivita">Festività</option>
+                        <option value="recupero_riposo">Recupero riposo</option>
+                        <option value="assenza_arbitraria">Assenza arbitraria</option>
+                        <option value="parentale">Parentale</option>
+                        <option value="legge_104">Legge 104</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Ore Straordinario (formato es. 1:30 o 1.30)</label>
+                    <input type="text" id="dayExtraHours" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold" placeholder="es. 1:30 oppure 1.30">
+                    <span class="text-[10px] text-gray-500">Inserisci ore e minuti (es. 1:30 oppure 1.30 per 1 ora e 30 minuti).</span>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Note o Annotazioni</label>
+                    <input type="text" id="dayNote" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold" placeholder="es. Linea 10, Straordinario pomeridiano">
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex space-x-2">
+                <button onclick="closeDayModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl text-xs transition">Annulla</button>
+                <button onclick="saveDayData()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl text-xs transition">Salva Giorno</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-gray-900/90 text-white text-xs px-4 py-2 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50">
+        Messaggio
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Storage Keys & State
+        let currentYearMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+        let appData = JSON.parse(localStorage.getItem('cotral_app_data')) || {};
+
+        // Funzioni di conversione Sessagesimale
+        function parseSessagesimaleToMinutes(val) {
+            if (!val) return 0;
+            let str = String(val).trim().replace(',', '.');
+            if (str.includes(':')) {
+                let parts = str.split(':');
+                let h = parseInt(parts[0]) || 0;
+                let m = parseInt(parts[1]) || 0;
+                return (h * 60) + m;
+            } else {
+                let num = parseFloat(str);
+                if (isNaN(num)) return 0;
+                let h = Math.floor(num);
+                let m = Math.round((num - h) * 100);
+                return (h * 60) + m;
+            }
+        }
+
+        function formatMinutesToSessagesimale(totalMinutes) {
+            let h = Math.floor(totalMinutes / 60);
+            let m = totalMinutes % 60;
+            return `${h}h ${m < 10 ? '0' : ''}${m}m`;
+        }
+
+        function getDecimalHoursFromMinutes(totalMinutes) {
+            return totalMinutes / 60;
+        }
+
+        // Tab Management
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('text-blue-600');
+                el.classList.add('text-gray-400');
+            });
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeNavBtn = document.getElementById('nav-btn-' + tabId);
+            activeNavBtn.classList.remove('text-gray-400');
+            activeNavBtn.classList.add('text-blue-600');
+            window.scrollTo(0, 0);
+        }
+
+        window.onload = function() {
+            document.getElementById('selectedMonthInput').value = currentYearMonth;
+            initMonthData(currentYearMonth);
+            renderMonthView();
+            updateSemesterData();
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                document.getElementById('installBtn').classList.remove('hidden');
+                document.getElementById('installBtn').classList.add('flex');
+            });
+        };
+
+        function openInstallModal() {
+            if (window.deferredPrompt) {
+                window.deferredPrompt.prompt();
+                window.deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showToast("App installata con successo!");
+                    }
+                    window.deferredPrompt = null;
+                    document.getElementById('installBtn').classList.add('hidden');
+                });
+            } else {
+                showToast("Segui le istruzioni nella scheda Impostazioni per installare l'app.");
+            }
+        }
+
+        function changeMonth() {
+            const val = document.getElementById('selectedMonthInput').value;
+            if (val) {
+                currentYearMonth = val;
+                initMonthData(currentYearMonth);
+                renderMonthView();
+            }
+        }
+
+        function initMonthData(ym) {
+            if (!appData[ym]) {
+                appData[ym] = {
+                    regolaritaFascia: 1,
+                    coperturaFascia: 1,
+                    incidentalitaDec: 0,
+                    malattiaEsclusione: false,
+                    provvedimentoEsclusione: false,
+                    days: {}
+                };
+            }
+            const [year, month] = ym.split('-');
+            const daysInMonth = new Date(year, month, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = String(d).padStart(2, '0');
+                const key = `${ym}-${dayStr}`;
+                if (!appData[ym].days[key]) {
+                    appData[ym].days[key] = {
+                        type: 'lavorativo',
+                        extraMinutes: 0,
+                        note: ''
+                    };
+                }
+            }
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('cotral_app_data', JSON.stringify(appData));
+        }
+
+        // Render Calendar Days & Calculations
+        function renderMonthView() {
+            const ym = currentYearMonth;
+            initMonthData(ym);
+            const monthData = appData[ym];
+
+            const [year, month] = ym.split('-');
+            const dateObj = new Date(year, month - 1, 1);
+            const monthName = dateObj.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+            document.getElementById('currentMonthDisplay').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            document.getElementById('summaryMonthTitle').textContent = monthName.toUpperCase();
+
+            const container = document.getElementById('daysListContainer');
+            container.innerHTML = '';
+
+            let totalMinutes = 0;
+            let compiledDaysCount = 0;
+            
+            let countLegge104 = 0;
+            let countParentale = 0;
+            let hasAssenzaArbitraria = false;
+
+            const daysKeys = Object.keys(monthData.days).sort();
+
+            daysKeys.forEach(key => {
+                const dayObj = monthData.days[key];
+                const parts = key.split('-');
+                const y = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                const d = parseInt(parts[2]);
+
+                const currentDayDate = new Date(y, m - 1, d);
+                let weekDayName = currentDayDate.toLocaleString('it-IT', { weekday: 'short' });
+                weekDayName = weekDayName.charAt(0).toUpperCase() + weekDayName.slice(1);
+
+                if ((dayObj.extraMinutes || 0) > 0 || dayObj.type !== 'lavorativo' || dayObj.note) {
+                    compiledDaysCount++;
+                }
+                totalMinutes += parseInt(dayObj.extraMinutes || 0);
+
+                if (dayObj.type === 'legge_104') countLegge104++;
+                if (dayObj.type === 'parentale') countParentale++;
+                if (dayObj.type === 'assenza_arbitraria') hasAssenzaArbitraria = true;
+
+                let badgeColor = 'bg-blue-50 text-blue-700';
+                let typeText = 'Lavorativo';
+                if (dayObj.type === 'riposo') { badgeColor = 'bg-gray-100 text-gray-600'; typeText = 'Riposo'; }
+                else if (dayObj.type === 'ferie') { badgeColor = 'bg-amber-50 text-amber-700'; typeText = 'Ferie'; }
+                else if (dayObj.type === 'malattia') { badgeColor = 'bg-red-50 text-red-700'; typeText = 'Malattia'; }
+                else if (dayObj.type === 'formazione') { badgeColor = 'bg-purple-50 text-purple-700'; typeText = 'Formazione'; }
+                else if (dayObj.type === 'festivita') { badgeColor = 'bg-teal-50 text-teal-700'; typeText = 'Festività'; }
+                else if (dayObj.type === 'recupero_riposo') { badgeColor = 'bg-indigo-50 text-indigo-700'; typeText = 'Recupero riposo'; }
+                else if (dayObj.type === 'assenza_arbitraria') { badgeColor = 'bg-rose-50 text-rose-700'; typeText = 'Assenza arbitraria'; }
+                else if (dayObj.type === 'parentale') { badgeColor = 'bg-pink-50 text-pink-700'; typeText = 'Parentale'; }
+                else if (dayObj.type === 'legge_104') { badgeColor = 'bg-cyan-50 text-cyan-700'; typeText = 'Legge 104'; }
+
+                const item = document.createElement('div');
+                item.className = 'p-3 hover:bg-gray-50 flex items-center justify-between cursor-pointer transition';
+                item.onclick = () => openDayModal(key);
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gray-100 font-bold text-gray-700 text-[11px] w-12 h-8 rounded-lg flex flex-col items-center justify-center leading-tight">
+                            <span>${weekDayName}</span>
+                            <span class="text-xs">${String(d).padStart(2, '0')}</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-md ${badgeColor}">${typeText}</span>
+                                ${(dayObj.extraMinutes || 0) > 0 ? `<span class="text-xs font-bold text-blue-600">+${formatMinutesToSessagesimale(dayObj.extraMinutes)} straor.</span>` : ''}
+                            </div>
+                            ${dayObj.note ? `<p class="text-[11px] text-gray-500 mt-0.5 truncate max-w-[180px]">${dayObj.note}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="text-gray-400 text-xs flex items-center space-x-1">
+                        <span>Modifica</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            // Aggiorna contatori visivi nella card principale
+            const counter104El = document.getElementById('counter104');
+            counter104El.textContent = `${countLegge104} / 3`;
+            counter104El.className = countLegge104 > 3 ? 'font-bold text-red-400' : 'font-bold text-white';
+
+            const counterParentaleEl = document.getElementById('counterParentale');
+            counterParentaleEl.textContent = `${countParentale} / 3`;
+            counterParentaleEl.className = countParentale > 3 ? 'font-bold text-red-400' : 'font-bold text-white';
+
+            document.getElementById('daysCountBadge').textContent = `${compiledDaysCount} giorni registrati`;
+            document.getElementById('summaryExtraHours').textContent = formatMinutesToSessagesimale(totalMinutes);
+
+            calculateMonthlyFinancials(totalMinutes, monthData, countLegge104, countParentale, hasAssenzaArbitraria);
+        }
+
+        function calculateMonthlyFinancials(totalMinutes, monthData, count104, countParentale, hasAssenzaArbitraria) {
+            const isExceeded104 = count104 > 3;
+            const isExceededParentale = countParentale > 3;
+
+            if (monthData.malattiaEsclusione || monthData.provvedimentoEsclusione || isExceeded104 || isExceededParentale || hasAssenzaArbitraria) {
+                let motivoEsclusione = 'Escluso';
+                if (hasAssenzaArbitraria) motivoEsclusione = 'Assenza Arbitraria';
+                else if (isExceeded104) motivoEsclusione = 'Legge 104 (>3g)';
+                else if (isExceededParentale) motivoEsclusione = 'Parentale (>3g)';
+
+                document.getElementById('summaryRegolaritaFascia').textContent = motivoEsclusione;
+                document.getElementById('summaryCoperturaFascia').textContent = motivoEsclusione;
+                document.getElementById('summaryMoltiplicatoreValue').textContent = '0.0x';
+                document.getElementById('summaryTotalMonthly').textContent = '0,00 €';
+                document.getElementById('headerEstimatedBonus').textContent = '0,00 €';
+                return;
+            }
+
+            let regolaritaPremio = 0;
+            const regFascia = parseInt(monthData.regolaritaFascia);
+            if (regFascia === 1) regolaritaPremio = 50;
+            else if (regFascia === 2) regolaritaPremio = 30;
+            else if (regFascia === 3) regolaritaPremio = 10;
+            document.getElementById('summaryRegolaritaFascia').textContent = `Fascia ${regFascia} (${regolaritaPremio}€)`;
+
+            let coperturaPremio = 0;
+            const copFascia = parseInt(monthData.coperturaFascia);
+            if (copFascia === 1) coperturaPremio = 85;
+            else if (copFascia === 2) coperturaPremio = 60;
+            else if (copFascia === 3) coperturaPremio = 45;
+            document.getElementById('summaryCoperturaFascia').textContent = `Fascia ${copFascia} (${coperturaPremio}€)`;
+
+            const totalExtraHoursDecimal = getDecimalHoursFromMinutes(totalMinutes);
+
+            let moltiplicatore = 1.0;
+            if (copFascia === 1) {
+                if (totalExtraHoursDecimal > 20) moltiplicatore = 1.9;
+                else if (totalExtraHoursDecimal >= 15) moltiplicatore = 1.7;
+                else if (totalExtraHoursDecimal >= 10) moltiplicatore = 1.5;
+                else moltiplicatore = 1.0;
+            } else if (copFascia === 2) {
+                if (totalExtraHoursDecimal > 20) moltiplicatore = 2.3;
+                else if (totalExtraHoursDecimal >= 15) moltiplicatore = 2.0;
+                else if (totalExtraHoursDecimal >= 10) moltiplicatore = 1.7;
+                else moltiplicatore = 1.0;
+            } else if (copFascia === 3) {
+                if (totalExtraHoursDecimal > 20) moltiplicatore = 2.8;
+                else if (totalExtraHoursDecimal >= 15) moltiplicatore = 2.3;
+                else if (totalExtraHoursDecimal >= 10) moltiplicatore = 1.9;
+                else moltiplicatore = 1.0;
+            } else {
+                moltiplicatore = 0.0;
+            }
+
+            document.getElementById('summaryMoltiplicatoreValue').textContent = moltiplicatore.toFixed(1) + 'x';
+
+            let incidentalitaValore = 0;
+            const incDec = parseInt(monthData.incidentalitaDec);
+            if (incDec === 0) {
+                incidentalitaValore = 30;
+            } else {
+                const basePremioBase = regolaritaPremio + coperturaPremio;
+                incidentalitaValore = - (basePremioBase * (incDec / 100));
+            }
+
+            let subTotaleBase = regolaritaPremio + coperturaPremio;
+            let subTotaleConMoltiplicatore = subTotaleBase * moltiplicatore;
+            let totaleMese = subTotaleConMoltiplicatore + incidentalitaValore;
+            if (totaleMese < 0) totaleMese = 0;
+
+            document.getElementById('summaryTotalMonthly').textContent = totaleMese.toFixed(2) + ' €';
+            document.getElementById('headerEstimatedBonus').textContent = totaleMese.toFixed(2) + ' €';
+        }
+
+        function openDayModal(key) {
+            document.getElementById('modalDayKey').value = key;
+            const dayObj = appData[currentYearMonth].days[key];
+            document.getElementById('dayTypeSelect').value = dayObj.type || 'lavorativo';
+            
+            let minutes = dayObj.extraMinutes || 0;
+            if (minutes > 0) {
+                let h = Math.floor(minutes / 60);
+                let m = minutes % 60;
+                document.getElementById('dayExtraHours').value = h > 0 || m > 0 ? `${h}:${m < 10 ? '0' : ''}${m}` : '';
+            } else {
+                document.getElementById('dayExtraHours').value = '';
+            }
+
+            document.getElementById('dayNote').value = dayObj.note || '';
+
+            const [y, m, d] = key.split('-');
+            document.getElementById('modalDayTitle').textContent = `Modifica Giorno ${d}/${m}/${y}`;
+            document.getElementById('dayModal').classList.remove('hidden');
+        }
+
+        function closeDayModal() {
+            document.getElementById('dayModal').classList.add('hidden');
+        }
+
+        function saveDayData() {
+            const key = document.getElementById('modalDayKey').value;
+            const rawInput = document.getElementById('dayExtraHours').value;
+            const calculatedMinutes = parseSessagesimaleToMinutes(rawInput);
+
+            appData[currentYearMonth].days[key] = {
+                type: document.getElementById('dayTypeSelect').value,
+                extraMinutes: calculatedMinutes,
+                note: document.getElementById('dayNote').value.trim()
+            };
+            saveData();
+            closeDayModal();
+            renderMonthView();
+            showToast("Giorno aggiornato con successo!");
+        }
+
+        function openMonthlyParamsModal() {
+            const monthData = appData[currentYearMonth];
+            document.getElementById('modalRegolaritaFascia').value = monthData.regolaritaFascia;
+            document.getElementById('modalCoperturaFascia').value = monthData.coperturaFascia;
+            document.getElementById('modalIncidentalita').value = monthData.incidentalitaDec;
+            document.getElementById('modalMalattiaEsclusione').checked = monthData.malattiaEsclusione;
+            document.getElementById('modalProvvedimentoEsclusione').checked = monthData.provvedimentoEsclusione;
+
+            document.getElementById('monthlyParamsModal').classList.remove('hidden');
+        }
+
+        function closeMonthlyParamsModal() {
+            document.getElementById('monthlyParamsModal').classList.add('hidden');
+        }
+
+        function saveMonthlyParams() {
+            const monthData = appData[currentYearMonth];
+            monthData.regolaritaFascia = document.getElementById('modalRegolaritaFascia').value;
+            monthData.coperturaFascia = document.getElementById('modalCoperturaFascia').value;
+            monthData.incidentalitaDec = document.getElementById('modalIncidentalita').value;
+            monthData.malattiaEsclusione = document.getElementById('modalMalattiaEsclusione').checked;
+            monthData.provvedimentoEsclusione = document.getElementById('modalProvvedimentoEsclusione').checked;
+
+            saveData();
+            closeMonthlyParamsModal();
+            renderMonthView();
+            showToast("Parametri mensili salvati!");
+        }
+
+        function calculateSemesterBonus() {
+            const turni = parseInt(document.getElementById('semTurniTotali').value) || 0;
+            const festivi = parseInt(document.getElementById('semFestiviTotali').value) || 0;
+
+            let bonusWelfare = 0;
+            if (turni >= 130) {
+                bonusWelfare = 400;
+            }
+
+            let bonusFestivi = 0;
+            if (festivi >= 13) bonusFestivi = 100;
+            else if (festivi >= 11) bonusFestivi = 80;
+            else if (festivi >= 9) bonusFestivi = 60;
+            else if (festivi >= 6) bonusFestivi = 40;
+
+            const totaleSemestre = bonusWelfare + bonusFestivi;
+            document.getElementById('semBonusResult').textContent = totaleSemestre + ' €';
+        }
+
+        function updateSemesterData() {
+            calculateSemesterBonus();
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `cotral_kpi_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Backup esportato correttamente!");
+        }
+
+        function importDataJSON(event) {
+            const fileReader = new FileReader();
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = function(e) {
+                    try {
+                        appData = JSON.parse(e.target.result);
+                        saveData();
+                        renderMonthView();
+                        updateSemesterData();
+                        showToast("Dati importati con successo!");
+                    } catch (err) {
+                        showToast("File di backup non valido.");
+                    }
+                };
+            }
+        }
+
+        function resetAllData() {
+            if (confirm("Sei sicuro di voler eliminare tutti i dati salvati? L'operazione è irreversibile.")) {
+                localStorage.removeItem('cotral_app_data');
+                appData = {};
+                initMonthData(currentYearMonth);
+                renderMonthView();
+                showToast("Dati azzerati.");
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
